@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hijaiyah Verse</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <style>
+    * { box-sizing: border-box; }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      background: url('islamic.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #ffffff;
+    }
+
+    main {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      direction: rtl; /* Teks Arab/kanan-ke-kiri */
+    }
+
+    .container {
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .logo-container {
+      margin-bottom: 2rem;
+    }
+
+    /* ⭐ BARU: Style untuk form login */
+    .login-form {
+      margin-bottom: 2rem;
+      direction: ltr; /* Form tetap kiri-ke-kanan */
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box; 
+      font-size: 1rem;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    #error-message {
+      color: #FFCDD2; /* Merah muda agar kontras */
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      display: none; /* Sembunyi secara default */
+    }
+    /* ⭐ AKHIR STYLE BARU */
+
+
+    /* Kontainer untuk semua tombol */
+    .button-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px; /* Jarak antar tombol */
+    }
+
+    .scan-button {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100px; /* Ukuran tetap */
+      height: 100px; /* Ukuran tetap */
+    }
+
+    .scan-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-5px);
+    }
+
+    .scan-button .icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    /* Tombol tengah lebih besar */
+    #scan-button-1 {
+      width: 130px;
+      height: 130px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    #scan-button-1 .icon {
+      font-size: 2.5rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <main>
+    <div class="container">
+
+      <div class="logo-container">
+        <img src="LOGO HIVE 2.png" alt="Logo HIVE" style="max-width: 200px;">
+      </div>
+
+      <div class="login-form">
+        <input type="text" id="nama" placeholder="Nama Lengkap" required>
+        <input type="text" id="nrp" placeholder="NRP" required>
+        <p id="error-message">Nama dan NRP wajib diisi!</p>
+      </div>
+
+      <div class="button-container">
+        <div class="scan-button" id="scan-button-2">
+          <div class="icon">
+            <i class="fas fa-info"></i>
+          </div>
+        </div>
+
+        <div class="scan-button" id="scan-button-1">
+          <div class="icon">
+            <i class="fas fa-camera"></i>
+          </div>
+          <div>
+            <span>Scan Kartu</span>
+          </div>
+        </div>
+
+        <div class="scan-button" id="scan-button-3">
+          <div class="icon">
+            <i class="fas fa-book"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ⭐ Logika Tombol Scan Kartu (Tombol 1) - TIDAK BERUBAH
+    document.getElementById('scan-button-1').addEventListener('click', () => {
+      
+      const namaInput = document.getElementById('nama');
+      const nrpInput = document.getElementById('nrp');
+      const errorMessage = document.getElementById('error-message');
+      
+      const nama = namaInput.value.trim();
+      const nrp = nrpInput.value.trim();
+
+      // Validasi: Cek apakah nama atau nrp kosong
+      if (nama === "" || nrp === "") {
+        errorMessage.style.display = 'block'; // Tampilkan pesan error
+      } else {
+        // Jika tidak kosong:
+        errorMessage.style.display = 'none'; // Sembunyikan pesan error
+        
+        // 1. Simpan data ke sessionStorage
+        sessionStorage.setItem('namaUser', nama);
+        sessionStorage.setItem('nrpUser', nrp);
+        
+        // 2. Pindah ke halaman AR
+        window.location.href = 'AR.html';
+      }
+    });
+
+    // ⭐ PERBAIKAN: Tombol 2 klik -> pindah ke halaman Info
+    document.getElementById('scan-button-2').addEventListener('click', () => {
+      // Langsung pindah ke info.html
+      window.location.href = 'info.html'; 
+    });
+
+    // ⭐ PERBAIKAN: Tombol 3 klik -> pindah ke halaman Panduan
+    document.getElementById('scan-button-3').addEventListener('click', () => {
+      // Langsung pindah ke panduan.html
+      window.location.href = 'panduan.html';
+    });
+  </script>
+
+</body>
+</html>

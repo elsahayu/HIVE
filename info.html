@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Info Produk</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    * { box-sizing: border-box; }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Cairo', sans-serif;
+      color: #333;
+    }
+
+    body {
+      background-color: #002d13;
+      padding: 20px;
+    }
+
+    h1, h3 {
+      color: #005519;
+      text-align: center;
+    }
+
+    h2 {
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .logo img {
+        display: block;          /* Membuat gambar menjadi block-level */
+        margin: 0 auto;          /* Memastikan gambar berada di tengah secara horizontal */
+        width: 120px;            /* Lebar gambar */
+        height: auto;            /* Menyesuaikan tinggi gambar secara proporsional */
+    }
+
+    .team {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Membagi grid menjadi 3 kolom */
+      grid-template-rows: auto auto auto; /* Membagi menjadi 3 baris */
+      gap: 20px;
+      justify-items: center; /* Memastikan semua item dalam grid terpusat */
+      align-items: center;  /* Memastikan item terpusat secara vertikal */
+      margin: 0 auto;
+    }
+
+    .team-member {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .team-member img {
+      width: 80px;
+      height: auto;
+      border-radius: 50%;
+      margin-bottom: 15px;
+    }
+
+    .team-member h3 {
+      margin: 10px 0;
+    }
+
+    .team-member p {
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .team-member .role {
+      font-weight: bold;
+      color: #005519;
+    }
+
+    /* .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      background-color: #ffffff;
+      color: #005519;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-block;  
+      font-size: 1rem;
+      margin-top: 30px;
+    }
+
+    .back-btn:hover {
+      background-color: #808080;
+      transform: scale(1.05);
+    } */
+
+    .back-btn-circle {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      
+      background-color: #ffffff; /* Warna hijau seperti ikon lain */
+      color: #000000;
+      width: 50px; /* Lebar dan tinggi yang sama untuk lingkaran */
+      height: 50px;
+      border-radius: 50%; /* Membuat bentuk lingkaran */
+      display: flex; /* Menggunakan flexbox untuk memusatkan ikon */
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem; /* Ukuran ikon panah */
+      text-decoration: none; /* Hapus garis bawah */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Tambahkan sedikit bayangan */
+      transition: background-color 0.2s, transform 0.2s; /* Transisi untuk hover */
+    }
+    
+    .back-btn-circle:hover {
+      background-color: #808080; /* Warna hijau yang sedikit lebih terang saat hover */
+      transform: scale(1.1); /* Efek membesar saat hover */
+    }
+
+    .home-btn-circle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      
+      background-color: #ffffff; /* Warna hijau seperti ikon lain */
+      color: #000000;
+      width: 50px; /* Lebar dan tinggi yang sama untuk lingkaran */
+      height: 50px;
+      border-radius: 50%; /* Membuat bentuk lingkaran */
+      display: flex; /* Menggunakan flexbox untuk memusatkan ikon */
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem; /* Ukuran ikon panah */
+      text-decoration: none; /* Hapus garis bawah */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Tambahkan sedikit bayangan */
+      transition: background-color 0.2s, transform 0.2s; /* Transisi untuk hover */
+    }
+    
+    .home-btn-circle:hover {
+      background-color: #808080; /* Warna hijau yang sedikit lebih terang saat hover */
+      transform: scale(1.1); /* Efek membesar saat hover */
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 80px; /* Tingkatkan padding atas untuk memberi ruang tombol lingkaran */
+      padding-left: 15px; /* Pastikan ada padding horizontal juga */
+      padding-right: 15px;
+    }
+
+    .description {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+    /* Menjadikan tim 1 kolom untuk layar HP/tablet kecil */
+    .team {
+        grid-template-columns: 1fr; /* Mengubah menjadi 1 kolom penuh */
+        gap: 30px; /* Menambah jarak antar anggota tim */
+    }
+
+    /* Memastikan logo terpusat dengan benar */
+    .logo img {
+        width: 100px; /* Sedikit perkecil logo */
+    }
+
+    /* Menyesuaikan jarak tombol agar tidak terlalu mepet ke atas */
+    .container {
+        padding-top: 65px; 
+    }
+    
+    /* Memindahkan tombol home dan back sedikit ke bawah/dalam untuk ruang */
+    .back-btn-circle, .home-btn-circle {
+        top: 15px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .back-btn-circle {
+        left: 15px;
+    }
+    
+    .home-btn-circle {
+        right: 15px;
+    }
+    
+    /* Mengubah lebar anggota tim agar mengikuti lebar container */
+    .team-member {
+        width: 100%;
+        max-width: 350px; /* Batasi lebar maksimum agar tidak terlalu besar di tablet/landscape HP */
+    }
+}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="section">
+      <div class="logo">
+        <br>
+        <img src="LOGO HIVE 2 - Copy.png" alt="logo">
+        <br>
+        <br>
+      </div>
+      <div class="description">
+        <h1>About Product</h1>
+        <p>Menciptakan pengalaman belajar yang aktif, interaktif, dan imersif melalui gamifikasi dan Augmented Reality (AR) untuk menarik minat anak. Sekaligus, kami mengimplementasikan Tutor Mengaji Virtual berbasis AI (Web Speech API) yang berfungsi sebagai "telinga" pendamping, yang mampu memberikan koreksi dan validasi real-time terhadap bacaan mereka.</p>
+        <p>Dengan menggunakan teknologi AR, Hijaiyah Verse mengubah cara tradisional belajar menjadi lebih menarik dan mudah diakses oleh siapa saja, terutama bagi anak-anak yang sedang belajar Al-Qur'an dan bahasa Arab.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Project Mentor</h2>
+      <div class="team">
+        <!-- Team Member 1: Project Manager (Top row, middle) -->
+        <div class="team-member">
+          <img src="ASSET/bapakdhoto.jpeg" alt="Team Member 1">
+          <h3>Bapak Dhoto</h3>
+          <p class="role">Dosen Pengampu</p>
+          <p>Nama: Sritrusta Sukaridhoto, S.T., Ph.D. <br>
+            Sebagai dosen pengampu dari mata kuliah Workshop AR/VR
+          </p>
+        </div>
+
+        <div class="section">
+          <h2>Asisten Mentor</h2>
+          <div class="team">
+            <!-- Team Member 1: Project Manager (Top row, middle) -->
+            <div class="team-member">
+              <img src="ASSET/masfaris.jpg" alt="Team Member 2">
+              <h3>Mas Faris</h3>
+              <p class="role">Asisten Dosen Pengampu</p>
+              <p>Nama: Faris Saifullah <br>
+                Sebagai asisten dosen dari mata kuliah Workshop AR/VR
+            </div>
+    
+    <div class="section">
+      <h2>Developer Team</h2>
+      <div class="team">
+        <!-- Team Member 1: Project Manager (Top row, middle) -->
+        <div class="team-member">
+          <img src="ASSET/elsa.jpg" alt="Team Member 3">
+          <h3>Elsa</h3>
+          <p class="role">Project Manager</p>
+          <p>Nama: Elsa Hayuningrat <br>
+            NRP: 5324600018 <br>
+            Jobdesk: Memimpin tim bertanggung jawab dalam perencanaan dan pengawasan project secara keseluruhan, menjaga agar project tetap berjalan.
+          </p>
+        </div>
+
+        <!-- Team Member 2: UI/UX Designer (Top row, left) -->
+        <div class="team-member">
+          <img src="ASSET/aluna.jpg" alt="Team Member 4">
+          <h3>Aluna</h3>
+          <p class="role">Creative</p>
+          <p>Nama: Mezzaluna Anandita Z <br>
+            NRP: 5324600002 <br>
+            Merancang desain antarmuka pengguna yang intuitif dan menarik untuk memastikan pengalaman pengguna yang optimal dan memudahkan interaksi dengan aplikasi.
+        </p>
+        </div>
+
+        <!-- Team Member 3: Developer (Top row, right) -->
+        <div class="team-member">
+          <img src="ASSET/icud.jpg" alt="Team Member 5">
+          <h3>Irsyad</h3>
+          <p class="role">Programmer</p>
+          <p>Nama: Muhammad Irsyad N <br>
+            NRP: 5324600007 <br>
+            Pengembang aplikasi yang bertanggung jawab untuk menulis kode, mengintegrasikan fitur-fitur AR, dan memastikan aplikasi berjalan dengan lancar.</p>
+        </div>
+
+        <!-- Team Member 4: Developer (Second row, left) -->
+        <div class="team-member">
+          <img src="ASSET/fendo.jpg" alt="Team Member 6">
+          <h3>Fendo</h3>
+          <p class="role">Programmer</p>
+          <p>Nama: Alfendo Putra <br>
+            NRP: 5324600015 <br>
+            Pengembang aplikasi yang bertanggung jawab untuk menulis kode, mengintegrasikan fitur-fitur AR, dan memastikan aplikasi berjalan dengan lancar di berbagai perangkat.
+        </p>
+        </div>
+
+        <!-- Team Member 5: Quality Assurance (Second row, middle) -->
+        <div class="team-member">
+          <img src="ASSET/rena.jpg" alt="Team Member 7">
+          <h3>Rena</h3>
+          <p class="role">Creative</p>
+          <p>Nama: Maurena Isaura A <br>
+            NRP: 5324600022 <br>
+            Merancang desain antarmuka pengguna yang intuitif dan menarik untuk memastikan pengalaman pengguna yang optimal dan memudahkan interaksi dengan aplikasi.
+        </p>
+        </div>
+
+        <!-- Team Member 6: Quality Assurance (Second row, right) -->
+        <div class="team-member">
+          <img src="ASSET/ripan.jpg" alt="Team Member 8">
+          <h3>Rivan</h3>
+          <p class="role">Creative</p>
+          <p>Nama: Muhammad Rivanza R <br>
+            NRP: 5324600025 <br>
+            Merancang desain antarmuka pengguna yang intuitif dan menarik untuk memastikan pengalaman pengguna yang optimal dan memudahkan interaksi dengan aplikasi.
+        </p>
+        </div>
+      </div>
+    </div>
+    <a href="index.html" class="back-btn-circle">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="container">
+
+      <a href="index.html" class="home-btn-circle">
+      <i class="fas fa-home"></i>
+    </a>
+    <div class="container">
+
+    </div>
+  </div>
+
+</body>
+</html>

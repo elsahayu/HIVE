@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Kafirun</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+
+    <script>
+        AFRAME.registerComponent('look-at-camera', {
+            tick: function () {
+                const cam = document.querySelector('[camera]');
+                if (cam) this.el.object3D.lookAt(cam.object3D.position);
+            }
+        });
+
+        AFRAME.registerComponent('gaze-highlight', {
+            init: function () {
+                const el = this.el;
+                const cursor = document.querySelector('#cursorRing');
+                if (!cursor) return;
+
+                el.addEventListener('mouseenter', () => {
+                    cursor.setAttribute('material', 'color', 'green');
+                });
+
+                el.addEventListener('mouseleave', () => {
+                    cursor.setAttribute('material', 'color', 'white');
+                });
+            }
+        });
+
+        function addGazeClick(id, callback) {
+            const target = document.getElementById(id);
+            const cursor = document.getElementById("cursorRing");
+            if (!target || !cursor) return;
+            cursor.addEventListener("click", (e) => {
+                if (e.detail && e.detail.intersectedEl === target) callback();
+            });
+        }
+    </script>
+
+    <style>.clickable { cursor: pointer; }</style>
+</head>
+
+<body>
+<a-scene background="color: black" fog="type: exponential; density: 0.1; color: #000">
+    <a-entity camera look-controls>
+        <a-entity 
+            id="cursorRing"
+            cursor="fuse:true; fuseTimeout:1500"
+            raycaster="objects: .clickable"
+            position="0 0 -0.5"
+            geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.025"
+            material="color: white; shader: flat">
+        </a-entity>
+    </a-entity>
+
+    <a-entity light="type: directional; color: #dfebff; intensity: 1" position="50 200 100"></a-entity>
+    <a-entity light="type: ambient; color: #666"></a-entity>
+
+    <a-box position="0 1 -3.5" rotation="0 0 0" width="2" height="4" depth="0.8" color="#ffffff"></a-box>
+
+    <a-box position="0 1.1 -2.5" width="1.2" height="0.3" depth="0.1" color="#16A34A"></a-box>
+    <a-box position="0 0.7 -2.5" width="1.2" height="0.3" depth="0.1" color="#97978F"></a-box>
+    <a-box position="0 0.3 -2.5" width="1.2" height="0.3" depth="0.1" color="#2563EB"></a-box>
+    <a-box position="0 -0.1 -2.5" width="1.2" height="0.3" depth="0.1" color="#97978F"></a-box>
+
+    <a-text id="btnPutar" class="clickable" value="Putar Surah" 
+            position="0 1.10 -2.42" align="center" width="2"
+            color="white" look-at-camera gaze-highlight></a-text>
+    <a-text id="btnUlangi" class="clickable" value="Ulangi"
+            position="0 0.70 -2.42" align="center" width="2"
+            color="white" look-at-camera gaze-highlight></a-text>
+    <a-text id="btnLatihan" class="clickable" value="Mulai Latihan"
+            position="0 0.30 -2.42" align="center" width="2"
+            color="white" look-at-camera gaze-highlight></a-text>
+    <a-text id="btnKembali" class="clickable" value="Kembali"
+            position="0 -0.09 -2.42" align="center" width="2"
+            color="white" look-at-camera gaze-highlight></a-text>
+
+    <a-plane position="0 1.80 -2.5" width="1" height="1"
+             material="src: url(textures/ALKAFIRUN.png); transparent: true; shader: standard"></a-plane>
+</a-scene>
+
+<audio id="audioKafirun" src="audio/al-kafirun.mp3"></audio>
+
+<script>
+const audio = document.getElementById("audioKafirun");
+
+addGazeClick("btnPutar", () => {
+    if (audio.paused) audio.play();
+    else audio.pause();
+});
+
+addGazeClick("btnUlangi", () => {
+    audio.currentTime = 0;
+    audio.play();
+});
+
+addGazeClick("btnLatihan", () => {
+    window.location.href = "LATIHAN AL-KAFIRUN.html";
+});
+
+addGazeClick("btnKembali", () => {
+    window.location.href = "dengar.html";
+});
+
+document.addEventListener("click", () => {
+    audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        console.log("AUDIO UNLOCKED");
+    });
+}, { once: true });
+</script>
+</body>
+</html>

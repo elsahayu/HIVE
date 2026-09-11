@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mulai latihan</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+
+    <script>
+        AFRAME.registerComponent('texture-loader', {
+            schema: {
+                src: {},
+                material_tex: {},
+                mesh: {},
+                texture: {},
+                normal: {type: 'boolean'},
+                normal_src: {},
+                wrap: {type: "boolean", default: false},
+                repeat: {type: "boolean", default: false}
+            },
+
+            init: function () { console.log('initialized'); },
+
+            update: function () {
+                this.data.texture = new THREE.TextureLoader().load(this.data.src);
+                this.data.texture.anisotropy = 16;
+                this.data.texture.minFilter = THREE.NearestFilter;
+                this.data.texture.maxFilter = THREE.NearestFilter;
+                this.data.material_tex = new THREE.MeshLambertMaterial({map: this.data.texture});
+
+                const el = this.el;
+                this.data.mesh = el.getObject3D('mesh');
+                this.data.mesh.material = this.data.material_tex;
+
+                if (this.data.normal == true) {
+                    this.data.normal_map = new THREE.TextureLoader().load(this.data.normal_src);
+                    this.data.mesh.material.normalMap = this.data.normal_map;
+                    this.data.mesh.receiveShadow = true;
+                }
+
+                if (this.data.wrap === true && this.data.repeat === true) {
+                    this.data.texture.wrapS = this.data.texture.wrapT = THREE.RepeatWrapping;
+                    this.data.texture.repeat.set(25, 25);
+                }
+            }
+        });
+
+        AFRAME.registerComponent('look-at-camera', {
+            tick: function () {
+                const cam = document.querySelector('[camera]');
+                if (cam) this.el.object3D.lookAt(cam.object3D.position);
+            }
+        });
+
+        /* ===========================================
+           EDITSEDIKIT: text-gaze sekarang baca data-target
+        ============================================*/
+        AFRAME.registerComponent('text-gaze', {
+            init: function () {
+                let timer;
+
+                this.el.addEventListener('mouseenter', () => {
+                    const cursor = document.querySelector('#cursorRing');
+                    if (cursor) cursor.setAttribute("material", "color: green");
+
+                    timer = setTimeout(() => {
+                        const target = this.el.getAttribute("data-target");
+                        if (target) window.location.href = target;
+                    }, 1500);
+                });
+
+                this.el.addEventListener('mouseleave', () => {
+                    clearTimeout(timer);
+                    const cursor = document.querySelector('#cursorRing');
+                    if (cursor) cursor.setAttribute("material", "color: white");
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+<a-scene background="color: black" fog="type: exponential; density: 0.1; color: #000">
+
+    <!-- Cursor -->
+    <a-entity camera look-controls>
+        <a-entity 
+            id="cursorRing"
+            cursor="fuse:true; fuseTimeout:3000"
+            raycaster="objects: .clickable"
+            position="0 0 -0.5"
+            geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.025"
+            material="color: white; shader: flat">
+        </a-entity>
+    </a-entity>
+
+    <a-entity light="type: directional; color: #dfebff; intensity: 1" position="50 200 100"></a-entity>
+    <a-entity light="type: ambient; color: #666"></a-entity>
+
+    <a-entity id="block-circle"></a-entity>
+
+    <script>
+        const total = 10;
+        const radius = 3.2;
+        const group = document.querySelector("#block-circle");
+
+        const surat = [
+            "An-Nas","Al-Falaq","Al-Ikhlas","Al-Lahab","An-Nashr",
+            "Al-Kafirun","Al-Kautsar","Al-Ma'un","Al-Quraisy","Al-Fil"
+        ];
+        
+        // --- DATA JUMLAH AYAT BARU ---
+        const jumlahAyat = [
+            "6 Ayat", "5 Ayat", "4 Ayat", "5 Ayat", "3 Ayat",
+            "6 Ayat", "3 Ayat", "7 Ayat", "4 Ayat", "5 Ayat"
+        ];
+        // ------------------------------
+
+        function suratToFile(name) {
+
+            const map = {
+                "An-Nas": "LATIHAN AN-NAS.html",
+                "Al-Falaq": "LATIHAN AL-FALAQ.html",
+                "Al-Ikhlas": "LATIHAN AL-IKHLAS.html",
+                "Al-Lahab": "LATIHAN AL-LAHAB.html",
+                "An-Nashr": "LATIHAN AL-NASHR.html",
+                "Al-Kafirun": "LATIHAN AL-KAFIRUN.html",
+                "Al-Kautsar": "LATIHAN AL-KAUTSAR.html",
+                "Al-Ma'un": "LATIHAN AL-MAUN.html",
+                "Al-Quraisy": "LATIHAN AL-QURAISY.html",
+                "Al-Fil": "LATIHAN AL-FIL.html"
+            };
+
+            return map[name];
+        }
+
+
+        for (let i = 0; i < total; i++) {
+            const angle = (i / total) * Math.PI * 2;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const rotY = -(angle * 180 / Math.PI) + 90;
+
+            const block = document.createElement("a-box");
+            block.setAttribute("width", "1.5");
+            block.setAttribute("height", "1");
+            block.setAttribute("depth", "0.1");
+            block.setAttribute("position", `${x} 1.2 ${z}`);
+            block.setAttribute("rotation", `0 ${rotY} 0`);
+            block.setAttribute("texture-loader", "src: textures/papan.jpg");
+            group.appendChild(block);
+
+            const text = document.createElement("a-text");
+            text.setAttribute("value", surat[i]);
+            text.setAttribute("align", "center");
+            text.setAttribute("width", "3");
+            text.setAttribute("color", "white");
+            text.setAttribute("font", "monoid");
+
+            const forwardX = Math.cos(angle) * (radius - 0.2);
+            const forwardZ = Math.sin(angle) * (radius - 0.2);
+
+            text.setAttribute("position", `${forwardX} 1.2 ${forwardZ}`);
+            text.setAttribute("look-at-camera", "");
+
+            text.classList.add("clickable");
+
+            /* === BAGIAN TAMBAHAN: target file sesuai nama === */
+            text.setAttribute("data-target", suratToFile(surat[i]));
+
+            /* gaze */
+            text.setAttribute("text-gaze", "");
+
+            group.appendChild(text);
+
+            const textAyat = document.createElement("a-text");
+            textAyat.setAttribute("value", jumlahAyat[i]);
+            textAyat.setAttribute("align", "center");
+            textAyat.setAttribute("width", "3");
+            textAyat.setAttribute("color", "gray"); // Warna berbeda agar jelas
+            textAyat.setAttribute("font", "monoid"); // Font yang berbeda untuk variasi
+            textAyat.setAttribute("scale", "0.7 0.7 0.7"); // Ukuran lebih kecil
+
+            // Posisi Teks Ayat (di bawah teks surah)
+            textAyat.setAttribute("position", `${forwardX} 1 ${forwardZ}`); // Turunkan dari 1.35 menjadi 1.05
+            textAyat.setAttribute("look-at-camera", "");
+            
+            // Tambahkan kelas clickable agar tetap dapat di klik (untuk kemudahan navigasi)
+            textAyat.classList.add("clickable"); 
+            textAyat.setAttribute("data-target", suratToFile(surat[i]));
+            textAyat.setAttribute("text-gaze", "");
+
+            group.appendChild(textAyat);
+            // ------------------------------
+        }
+    </script>
+
+</a-scene>
+
+</body>
+</html>

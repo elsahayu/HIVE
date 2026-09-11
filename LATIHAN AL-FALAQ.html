@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AL-FALAQ</title>
+
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+
+<script>
+
+/* ============================================================
+   DATA AYAT
+============================================================ */
+const ayatImages = [
+    "AYAT/AL-FALAQ1.png",
+    "AYAT/AL-FALAQ2.png",
+    "AYAT/AL-FALAQ3.png",
+    "AYAT/AL-FALAQ4.png",
+    "AYAT/AL-FALAQ5.png"
+];
+
+const ayatLatinTarget = [
+"qul a'udzu birabbil-falaq",
+"min syarri ma khalaq",
+"wa min syarri ghasiqin idza waqab",
+"wa min syarrin-naffatsati fil-uqad",
+"wa min syarri hasidin idza hasad"
+
+];
+
+let ayatIndex = 0;
+let skorList = [];
+let sudahRekam = false;       // ⭐ WAJIB REKAM DULU
+let nextLocked = false;       // ⭐ ANTI DOUBLE TRIGGER
+const totalAyat = 5;
+
+/* ============================================================
+   NORMALISASI PELAFALAN INDONESIA
+============================================================ */
+function normalizePhoneticIndo(str) {
+    return str
+        .toLowerCase()
+        .replace(/aa/g, "a")
+        .replace(/oh/g, "ah")
+        .replace(/sy/g, "sh")
+        .replace(/kh/g, "k")
+        .trim();
+}
+
+/* ============================================================
+   LEVENSHTEIN
+============================================================ */
+function levenshtein(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            matrix[i][j] =
+                b[i - 1] === a[j - 1]
+                    ? matrix[i - 1][j - 1]
+                    : Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+/* ============================================================
+   SKOR (VERSI NORMAL)
+============================================================ */
+function phoneticSimilarity(target, user) {
+
+// -------------------
+// CEK KATA MIRIP
+// -------------------
+
+if (target === user) {
+    return 1.0;
+}
+
+const tWords = target.split(/\s+/).filter(Boolean);
+const uWords = user.split(/\s+/).filter(Boolean);
+
+// =============================
+// HARD FILTER SALAH TOTAL ("tekan rekam")
+// =============================
+if (uWords.length > 2) {
+    let veryBad = true;
+
+    for (let uw of uWords) {
+        for (let tw of tWords) {
+            const max = Math.max(tw.length, uw.length);
+            const dist = levenshtein(tw, uw);
+            const sim = (max - dist) / max;
+            if (sim > 0.55) {
+                veryBad = false;
+                break;
+            }
+        }
+        if (!veryBad) break;
+    }
+    
+    if (veryBad) {
+        return 0.0; 
+    }
+}
+
+let matchCount = 0;
+for (let tw of tWords) {
+    let bestSim = 0;
+    for (let uw of uWords) {
+        const max = Math.max(tw.length, uw.length);
+        const dist = levenshtein(tw, uw);
+        const sim = (max - dist) / max;
+        if (sim > bestSim) bestSim = sim;
+    }
+    if (bestSim >= 0.30) matchCount++; 
+}
+
+const ratio = matchCount / tWords.length;
+
+if (uWords.length > 2 && ratio <= 0.40) {
+    return 0.0;
+}
+
+if (ratio < 0.25) { 
+    return 0.0;
+}
+// Ini untuk kasus baca panjang tapi ngawur
+if (uWords.length >= tWords.length / 2 && ratio < 0.40) {
+    return 0.0;
+}
+
+// -------------------
+// SIMILARITY NORMAL
+// -------------------
+const max = Math.max(target.length, user.length);
+const dist = levenshtein(target, user);
+let sim = (max - dist) / max;
+
+if (sim < 0) sim = 0.0;
+if (sim > 1) sim = 1;
+
+// -------------------
+// BOOST UTAMA (VERSI KOMPROMI TERBAIK)
+// -------------------
+
+// ⭐ PERBAIKAN: Tetap di-boost, tapi tidak terlalu kuat
+sim = Math.pow(sim, 0.7); // Diubah dari 0.35
+
+// Sisa boost Anda tetap ada untuk membantu skor yang sudah lumayan
+if (sim > 0.60) sim += 0.20;
+if (sim > 0.75) sim += 0.15;
+if (sim > 0.88) sim = 1.00; 
+
+if (sim > 1) sim = 1;
+if (sim < 0) sim = 0.0;
+
+return sim;
+}
+
+
+/* ============================================================
+   GAZE RECORD SUARA
+============================================================ */
+AFRAME.registerComponent("gaze-record", {
+    init: function () {
+
+        const el = this.el;
+        let recognition;
+
+        const hasilText = document.createElement("a-text");
+        hasilText.setAttribute("id", "hasilTextDisplay");
+        hasilText.setAttribute("position", "0 0.60 -2.0");
+        hasilText.setAttribute("align", "center");
+        hasilText.setAttribute("width", "2");
+        hasilText.setAttribute("color", "black");
+        hasilText.setAttribute("value", "");
+        this.el.sceneEl.appendChild(hasilText);
+
+        el.addEventListener("mouseenter", () => {
+            el.setAttribute("value", "Sedang Merekam...");
+
+            /* ⭐⭐⭐
+               JIKA SEDANG MEREKAM & INI AYAT TERAKHIR → UBAH TOMBOL BIRU
+            ⭐⭐⭐ */
+            if (ayatIndex === totalAyat - 1) {
+            const nextBtn = document.querySelector("a-text[gaze-next]");
+            nextBtn.setAttribute("value", "Lihat Nilai Akhir");
+            }
+
+
+            let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                hasilText.setAttribute("value", "Browser tidak mendukung Speech Recognition");
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = "id-ID";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+// ⭐ HAPUS ONSPEECHEND (JANGAN ADA INI)
+// recognition.onspeechend = () => recognition.stop();
+
+recognition.start();
+
+recognition.onresult = (e) => {
+    sudahRekam = true;
+
+    const trans = e.results[0][0].transcript.trim();
+
+    const target = ayatLatinTarget[ayatIndex];
+    const targetNorm = normalizePhoneticIndo(target); 
+    const userNorm   = normalizePhoneticIndo(trans);
+
+    const score = Math.round(phoneticSimilarity(targetNorm, userNorm) * 100);
+    skorList[ayatIndex] = score;
+
+    let feedback = "";
+    if (score >= 85) feedback = `✔️ Bagus! Skor ${score}%`;
+    else if (score >= 60) feedback = `⚠️ Lumayan. Skor ${score}%`;
+    else feedback = `❌ Perlu latihan. Skor ${score}%`;
+
+    hasilText.setAttribute("value", feedback);
+
+    recognition.stop();   // ⭐ WAJIB
+    recognition.abort();  // ⭐ TANPA INI = DELAY
+};
+
+
+recognition.onend = () => {
+    el.setAttribute("value", "Mulai Rekam");
+};
+
+        });
+
+        el.addEventListener("mouseleave", () => {
+            el.setAttribute("value", "Mulai Rekam");
+            if (recognition) recognition.stop();
+        });
+    }
+});
+
+/* ============================================================
+   NEXT AYAT — WITH LOCK SYSTEM + FINAL SCORE HANDLING
+============================================================ */
+AFRAME.registerComponent("gaze-next", {
+    init: function () {
+        const el = this.el;
+
+        el.addEventListener("mouseenter", () => {
+
+            if (nextLocked) return;        // ⛔ Prevent double trigger
+            nextLocked = true;             // 🔒 Lock
+
+            if (!sudahRekam) {
+                const hasilText = document.querySelector("#hasilTextDisplay");
+                hasilText.setAttribute("value", "Silakan baca ayat dulu");
+                nextLocked = false;        // 🔓 Unlock kembali
+                return;
+            }
+
+            el.setAttribute("value", "Loading...");
+
+            setTimeout(() => {
+
+                ayatIndex++;
+                sudahRekam = false;        // Reset agar wajib rekam ayat berikutnya
+
+                /* ⭐ CEK JIKA SUDAH AYAT TERAKHIR */
+                if (ayatIndex >= totalAyat) {
+
+// Hitung rata-rata
+let total = 0;
+for (let i = 0; i < skorList.length; i++) {
+    total += skorList[i];
+}
+const finalScore = Math.round(total / skorList.length);
+let ayatLulus = skorList.filter(s => s >= 80).length;
+let statusLulus = (ayatLulus >= 3 && finalScore >= 70) ? "LULUS" : "TIDAK LULUS";
+
+ // ⭐ AMBIL & TAMPILKAN NAMA/NRP
+                    const namaUser = sessionStorage.getItem('namaUser') || 'Siswa';
+                    const nrpUser = sessionStorage.getItem('nrpUser') || '00000';
+                    
+                    const infoText = document.querySelector("#infoUserText");
+                    infoText.setAttribute("value", `${namaUser}\n${nrpUser}`); // \n = baris baru
+                    infoText.setAttribute("visible", "true");
+                    // ⭐ AKHIR TAMBAHAN
+
+// Tampilkan nilai akhir (center)
+const finalText = document.querySelector("#finalScoreText");
+finalText.setAttribute("value", `Nilai Akhir: ${finalScore}%`);
+finalText.setAttribute("visible", "true");
+
+const kelulusan = document.querySelector("#kelulusanText");
+
+if (statusLulus === "LULUS") {
+    // ========================
+    // STATUS LULUS
+    // ========================
+    kelulusan.setAttribute("value", "Status: LULUS ✓");
+    kelulusan.setAttribute("color", "green");
+
+    // Tombol tetap "Kembali"
+    const backBtn = document.querySelector("a-text[gaze-back]");
+    backBtn.setAttribute("value", "Kembali");
+
+    // Reset link kembali ke menu
+    backBtn.removeEventListener("mouseenter", backBtn._oldBehavior);
+    backBtn._oldBehavior = function () {
+        window.location.href = "dengar.html";
+    };
+    backBtn.addEventListener("mouseenter", backBtn._oldBehavior);
+
+} else {
+    // ========================
+    // STATUS TIDAK LULUS
+    // ========================
+    kelulusan.setAttribute("value", "Status: TIDAK LULUS ✗");
+    kelulusan.setAttribute("color", "red");
+
+    // --------------------
+    // 1. Ubah tombol jadi "Baca Surah"
+    // --------------------
+    const backBtn = document.querySelector("a-text[gaze-back]");
+    backBtn.setAttribute("value", "Baca Surah");
+
+    // --------------------
+    // 2. Tombol menuju dengar-alfalaq.html
+    // --------------------
+    backBtn.removeEventListener("mouseenter", backBtn._oldBehavior);
+    backBtn._oldBehavior = function () {
+        window.location.href = "dengar-alfalaq.html";
+    };
+    backBtn.addEventListener("mouseenter", backBtn._oldBehavior);
+
+    // --------------------
+    // 3. Tampilkan "Dengarkan Contoh Bacaan Surah"
+    // --------------------
+    const promptText = document.createElement("a-text");
+    promptText.setAttribute("value", "Dengarkan Contoh Bacaan Surah");
+    promptText.setAttribute("color", "black");
+    promptText.setAttribute("align", "center");
+    promptText.setAttribute("width", "1.5");
+    promptText.setAttribute("position", "0 0.35 -2.2");
+    promptText.setAttribute("look-at-camera", "");
+    document.querySelector("a-scene").appendChild(promptText);
+}
+
+kelulusan.setAttribute("visible", "true");
+
+// Tampilkan daftar ayat (left)
+let ayatListText = "";
+for (let i = 0; i < skorList.length; i++) {
+    ayatListText += `Ayat ${i + 1}: ${skorList[i]}%\n`;
+}
+
+const ayatList = document.querySelector("#finalAyatList");
+ayatList.setAttribute("value", ayatListText);
+ayatList.setAttribute("visible", "true");
+
+
+// Sembunyikan semua elemen
+document.querySelector("#ayatImg").setAttribute("visible", "false");
+document.querySelector("a-text[gaze-record]").setAttribute("visible", "false");
+document.querySelector("a-box[material='shader: flat; color: #16A34A']").setAttribute("visible", "false");
+
+const instr = document.querySelector("a-text[value='Tekan mulai rekam untuk membaca ayat ini']");
+if (instr) instr.setAttribute("visible", "false");
+
+const title = document.querySelector("a-text[value='Surah Al-Falaq']");
+if (title) title.setAttribute("visible", "false");
+
+const hasil = document.querySelector("#hasilTextDisplay");
+if (hasil) hasil.setAttribute("visible", "false");
+
+const nextBox = document.querySelector("a-box[color='#1D4ED8']");
+if (nextBox) nextBox.setAttribute("visible", "false");
+
+el.setAttribute("visible", "false");
+return;
+}
+
+
+                /* ⭐ UPDATE AYAT */
+                document.querySelector("#ayatImg")
+                    .setAttribute("src", ayatImages[ayatIndex]);
+
+                const hasilText = document.querySelector("#hasilTextDisplay");
+                if (hasilText) hasilText.setAttribute("value", "");
+
+                /* ⭐ JIKA MASUK AYAT TERAKHIR */
+                if (ayatIndex === totalAyat - 1) {
+                    el.setAttribute("value", "Lihat Nilai Akhir");
+                } else {
+                    el.setAttribute("value", "Lanjut Ayat");
+                }
+
+                nextLocked = false;       // 🔓 Unlock setelah selesai
+
+            }, 1500);
+        });
+
+        el.addEventListener("mouseleave", () => {
+            if (ayatIndex === totalAyat - 1 && !sudahRekam) {
+                el.setAttribute("value", "Lihat Nilai Akhir");
+            } else {
+                el.setAttribute("value", "Lanjut Ayat");
+            }
+        });
+    }
+});
+
+
+/* ============================================================
+   GAZE BACK
+============================================================ */
+AFRAME.registerComponent("gaze-back", {
+    init: function () {
+        const el = this.el;
+
+        el.addEventListener("mouseenter", () => {
+            el.setAttribute("value", "Loading...");
+            setTimeout(() => {
+                window.location.href = "dengar.html";
+            }, 5000);  // ⭐ lebih lama
+        });
+
+        el.addEventListener("mouseleave", () => {
+            el.setAttribute("value", "Kembali");
+        });
+    }
+});
+
+/* ============================================================
+   KAMERA FOLLOW
+============================================================ */
+AFRAME.registerComponent('look-at-camera', {
+    tick: function () {
+        const cam = document.querySelector('[camera]');
+        if (cam) this.el.object3D.lookAt(cam.object3D.position);
+    }
+});
+
+
+</script>
+</head>
+
+<body>
+
+<a-scene background="color: black">
+
+    <a-entity camera look-controls>
+        <a-entity 
+            id="cursorRing"
+            cursor="fuse:true; fuseTimeout:2000"
+            raycaster="objects:.clickable"
+            position="0 0 -0.5"
+            geometry="primitive:ring; radiusInner:0.015; radiusOuter:0.025"
+            material="color:white; shader:flat">
+        </a-entity>
+    </a-entity>
+
+    <a-box position="0 1 -3.5" width="2" height="4" depth="0.8" color="#ffffff"></a-box>
+
+    <a-box position="0 1.0 -2.5" width="1.2" height="0.3" depth="0.1" material="shader: flat; color: #16A34A"></a-box>
+
+    <a-text value="Mulai Rekam"
+        position="0 0.95 -2.38"
+        width="2"
+        color="black"
+        align="center"
+        look-at-camera
+        class="clickable"
+        gaze-record>
+    </a-text>
+
+    <a-text value="Tekan mulai rekam untuk membaca ayat ini"
+        position="0 1.2 -2.38"
+        width="1.3"
+        color="black"
+        align="center"
+        look-at-camera>
+    </a-text>
+
+    <a-plane id="ayatImg"
+        src="AYAT/AL-FALAQ1.png"
+        position="0 1.80 -2.45"
+        width="1.5" height="0.5"
+        material="transparent:true"
+        look-at-camera>
+    </a-plane>
+
+    <a-box position="0 0.3 -2.5" width="1.2" height="0.3" depth="0.1" color="#1D4ED8"></a-box>
+
+    <a-text value="Lanjut Ayat"
+        position="0 0.3 -2.38"
+        width="2"
+        color="black"
+        align="center"
+        class="clickable"
+        look-at-camera
+        gaze-next>
+    </a-text>
+
+    <a-box position="0 -0.1 -2.5" width="1.2" height="0.3" depth="0.1" color="#828282"></a-box>
+
+    <a-text value="Kembali"
+        position="0 -0.1 -2.38"
+        width="2"
+        color="black"
+        align="center"
+        class="clickable"
+        look-at-camera
+        gaze-back>
+    </a-text>
+
+    <a-text value="Surah Al-Falaq"
+        position="0 2.1 -2.38"
+        width="1.5"
+        color="black"
+        align="center"
+        look-at-camera>
+    </a-text>
+
+    <a-text 
+        id="finalScoreText"
+        value=""
+        position="0 1.75 -2.2"
+        width="3"
+        color="black"
+        align="center"
+        visible="false"
+        font="roboto"
+        look-at-camera>
+    </a-text>
+
+    <a-text 
+    id="finalAyatList"
+    value=""
+    position="-0 1.1 -2.7"
+    width="3"
+    color="black"
+    align="center"
+    visible="false"
+    look-at-camera
+    font="dejavu"
+    **font-weight="400"**>
+    </a-text>
+
+    <a-text 
+    id="kelulusanText"
+    value=""
+    position="0 0.45 -2.2"
+    width="3"
+    color="black"
+    align="center"
+    visible="false"
+    look-at-camera>
+    </a-text>
+
+<a-text
+    id="infoUserText"
+        value=""
+        position="0 1.6 -2.2" 
+        width="1.6"
+        color="black"
+        align="center"
+        visible="false"
+        look-at-camera>
+    ></a-text>
+
+
+
+</a-scene>
+
+</body>
+</html>

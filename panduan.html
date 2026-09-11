@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pengaturan - Langkah Menggunakan Produk</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <style>
+    * { box-sizing: border-box; }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Cairo', sans-serif;
+      color: #333;
+    }
+
+    body {
+      background-color: #002d13;
+      padding: 20px;
+    }
+
+    .logo img {
+        display: block;          /* Membuat gambar menjadi block-level */
+        margin: 0 auto;          /* Memastikan gambar berada di tengah secara horizontal */
+        width: 120px;            /* Lebar gambar */
+        height: auto;            /* Menyesuaikan tinggi gambar secara proporsional */
+    }
+
+    h1, h2 {
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .step {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 200px;
+      transition: transform 0.3s;
+    }
+
+    .step:hover {
+      transform: scale(1.05);
+    }
+
+    .step i {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #005519;
+    }
+
+    .step p {
+      font-size: 1rem;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .back-btn-circle {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      
+      background-color: #ffffff; /* Warna hijau seperti ikon lain */
+      color: #000000;
+      width: 50px; /* Lebar dan tinggi yang sama untuk lingkaran */
+      height: 50px;
+      border-radius: 50%; /* Membuat bentuk lingkaran */
+      display: flex; /* Menggunakan flexbox untuk memusatkan ikon */
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem; /* Ukuran ikon panah */
+      text-decoration: none; /* Hapus garis bawah */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Tambahkan sedikit bayangan */
+      transition: background-color 0.2s, transform 0.2s; /* Transisi untuk hover */
+    }
+    
+    .back-btn-circle:hover {
+      background-color: #808080; /* Warna hijau yang sedikit lebih terang saat hover */
+      transform: scale(1.1); /* Efek membesar saat hover */
+    }
+
+    .home-btn-circle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      
+      background-color: #ffffff; /* Warna hijau seperti ikon lain */
+      color: #000000;
+      width: 50px; /* Lebar dan tinggi yang sama untuk lingkaran */
+      height: 50px;
+      border-radius: 50%; /* Membuat bentuk lingkaran */
+      display: flex; /* Menggunakan flexbox untuk memusatkan ikon */
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem; /* Ukuran ikon panah */
+      text-decoration: none; /* Hapus garis bawah */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Tambahkan sedikit bayangan */
+      transition: background-color 0.2s, transform 0.2s; /* Transisi untuk hover */
+    }
+    
+    .home-btn-circle:hover {
+      background-color: #808080; /* Warna hijau yang sedikit lebih terang saat hover */
+      transform: scale(1.1); /* Efek membesar saat hover */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo">
+        <br>
+        <img src="LOGO HIVE 2 - Copy.png" alt="logo">
+        <br>
+      </div>
+    <h2>Panduan alur aplikasi HIVE</h2>
+
+    <div class="steps">
+      <!-- Step 1: Home Page -->
+      <div class="step">
+        <i class="fas fa-home"></i>
+        <p><strong>Home Page</strong></p>
+        <p>Mulailah dengan membuka halaman utama aplikasi.</p>
+      </div>
+
+      <!-- Step 2: Scan QR Code -->
+      <div class="step">
+        <i class="fas fa-qrcode"></i>
+        <p><strong>Scan QR Code</strong></p>
+        <p>Pindai QR code untuk memulai.</p>
+      </div>
+
+      <!-- Step 3: Pilih Mode -->
+      <div class="step">
+        <i class="fas fa-cogs"></i>
+        <p><strong>Pilih Mode</strong></p>
+        <p>Pilih mode: "Dengar Contoh" atau "Mulai Latihan".</p>
+      </div>
+
+      <!-- Step 4: Contoh Membaca dengan Benar -->
+      <div class="step">
+        <i class="fas fa-volume-up"></i>
+        <p><strong>Contoh Membaca dengan Benar</strong></p>
+        <p>Perhatikan contoh cara membaca yang benar.</p>
+      </div>
+
+      <!-- Step 5: Mulai Latihan -->
+      <div class="step">
+        <i class="fas fa-play-circle"></i>
+        <p><strong>Mulai Latihan</strong></p>
+        <p>Mulailah latihan dengan membaca ayat sesuai dengan mode yang dipilih.</p>
+      </div>
+
+      <!-- Step 6: Menampilkan Setiap Ayat -->
+      <div class="step">
+        <i class="fas fa-book-open"></i>
+        <p><strong>Menampilkan Setiap Ayat</strong></p>
+        <p>Setiap ayat akan ditampilkan satu per satu.</p>
+      </div>
+
+      <!-- Step 7: User Membaca Ayat -->
+      <div class="step">
+        <i class="fas fa-microphone"></i>
+        <p><strong>User Membaca Ayat</strong></p>
+        <p>Pengguna membaca ayat sesuai dengan contoh yang ditampilkan.</p>
+      </div>
+
+      <!-- Step 8: Selesai Membaca Surat -->
+      <div class="step">
+        <i class="fas fa-check-circle"></i>
+        <p><strong>Selesai Membaca Surat</strong></p>
+        <p>Setelah selesai, aplikasi akan menilai hasil bacaan.</p>
+      </div>
+
+      <!-- Step 9: Nilai Akhir dan Rapor Muncul -->
+      <div class="step">
+        <i class="fas fa-chart-bar"></i>
+        <p><strong>Nilai Akhir dan Rapor Muncul</strong></p>
+        <p>Nilai akhir akan ditampilkan beserta rapor hasil latihan.</p>
+      </div>
+    </div>
+    <a href="index.html" class="back-btn-circle">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="container">
+
+      <a href="index.html" class="home-btn-circle">
+      <i class="fas fa-home"></i>
+    </a>
+    <div class="container">
+  </div>
+
+  <br>
+  <br>
+
+</body>
+</html>
